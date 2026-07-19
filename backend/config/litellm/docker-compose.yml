@@ -1,0 +1,21 @@
+services:
+  litellm:
+    image: ghcr.io/berriai/litellm:v1.86.2
+    container_name: litellm
+
+    command:
+      - "--config"
+      - "/app/proxy_server_config.yaml"
+      - "--port"
+      - "4000"
+
+    ports:
+      - "4000:4000"
+
+    env_file:
+      - .env
+
+    volumes:
+      - ./config.yaml:/app/proxy_server_config.yaml:ro
+
+    restart: unless-stopped
