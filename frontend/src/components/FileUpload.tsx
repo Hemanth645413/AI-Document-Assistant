@@ -116,11 +116,9 @@ function FileUpload() {
                 message: "File uploaded successfully!",
             });
 
+            // Clear selected file after upload
             setSelectedFile(null);
 
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
         } catch (error: any) {
             console.error(error);
 
@@ -215,12 +213,7 @@ function FileUpload() {
                                 variant="body2"
                                 color="text.secondary"
                             >
-                                {(
-                                    selectedFile.size /
-                                    1024 /
-                                    1024
-                                ).toFixed(2)}{" "}
-                                MB
+                                {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                             </Typography>
 
                             <Button
@@ -235,10 +228,7 @@ function FileUpload() {
                     )}
 
                     {uploading && (
-                        <Box
-                            width="100%"
-                            mt={3}
-                        >
+                        <Box width="100%" mt={3}>
                             <LinearProgress
                                 variant="determinate"
                                 value={progress}

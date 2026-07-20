@@ -1,10 +1,11 @@
 const express = require("express");
-const axios = require("axios");
+const Groq = require("groq-sdk");
 
 const router = express.Router();
 
-// LiteLLM URL
-const LITELLM_URL = "http://localhost:36892/chat/completions";
+const groq = new Groq({
+    apiKey: process.env.GROQ_API_KEY,
+});
 
 // ===========================
 // AI Chat Route
@@ -42,34 +43,32 @@ Instructions:
 "I couldn't find that information in the uploaded document."
 `;
 
-        console.log("📤 Sending request to LiteLLM...");
-        console.log("LiteLLM URL:", LITELLM_URL);
-
-        const response = await axios.post(LITELLM_URL, {
-            model: "groq-llama",
+        const completion = await groq.chat.completions.create({
+            model: "llama-3.3-70b-versatile",
             messages: [
                 {
                     role: "user",
                     content: prompt,
                 },
             ],
+            temperature: 0.3,
         });
 
-        console.log("✅ LiteLLM Response Received");
+        console.log("✅ AI Response Generated");
 
         res.json({
             success: true,
-            answer: response.data.choices[0].message.content,
+            answer: completion.choices[0].message.content,
         });
 
     } catch (error) {
 
         console.error("❌ AI Chat Error");
-        console.error(error.response?.data || error.message);
+        console.error(error);
 
         res.status(500).json({
             success: false,
-            error: error.response?.data || error.message,
+            error: error.message,
         });
 
     }
@@ -93,9 +92,7 @@ router.post("/summary", async (req, res) => {
         }
 
         const prompt = `
-You are an AI Document Assistant.
-
-Summarize the following document in simple, professional language.
+Summarize the following document.
 
 Document Name:
 ${global.documentName}
@@ -105,38 +102,36 @@ ${global.documentText}
 
 Instructions:
 1. Give a concise summary.
-2. Highlight the important points.
-3. Keep the summary between 100 and 200 words.
+2. Highlight important points.
+3. Keep it between 100 and 200 words.
 `;
 
-        console.log("📤 Sending Summary Request to LiteLLM...");
-        console.log("LiteLLM URL:", LITELLM_URL);
-
-        const response = await axios.post(LITELLM_URL, {
-            model: "groq-llama",
+        const completion = await groq.chat.completions.create({
+            model: "llama-3.3-70b-versatile",
             messages: [
                 {
                     role: "user",
                     content: prompt,
                 },
             ],
+            temperature: 0.3,
         });
 
         console.log("✅ Summary Generated");
 
         res.json({
             success: true,
-            summary: response.data.choices[0].message.content,
+            summary: completion.choices[0].message.content,
         });
 
     } catch (error) {
 
         console.error("❌ Summary Error");
-        console.error(error.response?.data || error.message);
+        console.error(error);
 
         res.status(500).json({
             success: false,
-            error: error.response?.data || error.message,
+            error: error.message,
         });
 
     }
