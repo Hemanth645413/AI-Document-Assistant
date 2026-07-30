@@ -1,16 +1,40 @@
-import { Card, CardContent, Typography, Box, Skeleton } from '@mui/material';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
-import type { StatSummary } from '../types';
+import {
+  Card,
+  CardContent,
+  Typography,
+  Box,
+  Skeleton,
+  Chip,
+} from "@mui/material";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 
-export default function StatCard({ stat, loading }: { stat?: StatSummary; loading?: boolean }) {
+import type { StatSummary } from "../types";
+
+interface StatCardProps {
+  stat?: StatSummary;
+  loading?: boolean;
+}
+
+export default function StatCard({
+  stat,
+  loading = false,
+}: StatCardProps) {
   if (loading || !stat) {
     return (
-      <Card>
+      <Card
+        elevation={0}
+        sx={{
+          borderRadius: 4,
+          border: "1px solid #e5e7eb",
+          height: "100%",
+        }}
+      >
         <CardContent>
           <Skeleton width={90} height={18} />
-          <Skeleton width={120} height={36} sx={{ mt: 1 }} />
-          <Skeleton width={70} height={18} sx={{ mt: 1 }} />
+          <Skeleton width={120} height={40} sx={{ mt: 1 }} />
+          <Skeleton width={100} height={24} sx={{ mt: 2 }} />
         </CardContent>
       </Card>
     );
@@ -19,33 +43,90 @@ export default function StatCard({ stat, loading }: { stat?: StatSummary; loadin
   const isPositive = stat.delta >= 0;
 
   return (
-    <Card>
+    <Card
+      elevation={0}
+      sx={{
+        borderRadius: 4,
+        border: "1px solid #e5e7eb",
+        transition: "all .3s ease",
+        cursor: "pointer",
+        overflow: "hidden",
+
+        "&:hover": {
+          transform: "translateY(-6px)",
+          boxShadow: "0 12px 30px rgba(0,0,0,0.10)",
+          borderColor: "#1976d2",
+        },
+      }}
+    >
       <CardContent>
-        <Typography variant="subtitle2" color="text.secondary">
-          {stat.label}
-        </Typography>
-        <Typography variant="h4" sx={{ mt: 0.5, fontSize: 28 }}>
-          {stat.value}
-        </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1 }}>
-          <Box
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+        >
+          <Typography
             sx={{
-              display: 'flex',
-              alignItems: 'center',
-              color: isPositive ? 'success.main' : 'error.main',
+              fontSize: 13,
+              fontWeight: 700,
+              color: "text.secondary",
+              letterSpacing: 1,
+              textTransform: "uppercase",
             }}
           >
-            {isPositive ? (
-              <ArrowUpwardIcon sx={{ fontSize: 14 }} />
-            ) : (
-              <ArrowDownwardIcon sx={{ fontSize: 14 }} />
-            )}
-            <Typography variant="caption" fontWeight={700} sx={{ ml: 0.25 }}>
-              {Math.abs(stat.delta)}%
-            </Typography>
+            {stat.label}
+          </Typography>
+
+          <Box
+            sx={{
+              bgcolor: "#E3F2FD",
+              color: "#1976d2",
+              p: 1,
+              borderRadius: 2,
+            }}
+          >
+            <TrendingUpIcon fontSize="small" />
           </Box>
-          <Typography variant="caption" color="text.secondary">
-            vs last period
+        </Box>
+
+        <Typography
+          variant="h4"
+          fontWeight={700}
+          sx={{
+            mt: 2,
+            fontSize: 30,
+          }}
+        >
+          {stat.value}
+        </Typography>
+
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            mt: 2,
+            gap: 1,
+          }}
+        >
+          <Chip
+            size="small"
+            icon={
+              isPositive ? (
+                <ArrowUpwardIcon />
+              ) : (
+                <ArrowDownwardIcon />
+              )
+            }
+            label={`${Math.abs(stat.delta)}%`}
+            color={isPositive ? "success" : "error"}
+            variant="filled"
+          />
+
+          <Typography
+            variant="caption"
+            color="text.secondary"
+          >
+            Compared to last period
           </Typography>
         </Box>
       </CardContent>

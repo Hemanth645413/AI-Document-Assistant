@@ -10,7 +10,9 @@ import {
 } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
+
 import API from "../services/api";
+import { supabase } from "../services/supabase";
 
 function FileUpload() {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -88,8 +90,18 @@ function FileUpload() {
             setUploading(true);
             setProgress(10);
 
+            // Get logged-in user
+            const {
+                data: { user },
+            } = await supabase.auth.getUser();
+
+            if (!user) {
+                throw new Error("User not logged in.");
+            }
+
             const formData = new FormData();
             formData.append("file", selectedFile);
+            formData.append("user_id", user.id);
 
             const response = await API.post("/upload", formData, {
                 headers: {
@@ -116,7 +128,6 @@ function FileUpload() {
                 message: "File uploaded successfully!",
             });
 
-            // Clear selected file after upload
             setSelectedFile(null);
 
         } catch (error: any) {
@@ -127,6 +138,7 @@ function FileUpload() {
                 severity: "error",
                 message:
                     error.response?.data?.error ||
+                    error.message ||
                     "Upload failed.",
             });
         } finally {
