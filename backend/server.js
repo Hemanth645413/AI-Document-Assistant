@@ -5,6 +5,7 @@ require("dotenv").config();
 const supabase = require("./config/supabase");
 const uploadRoutes = require("./routes/upload");
 const chatRoutes = require("./routes/chat");
+const documentRoutes = require("./routes/documents");
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use(express.json());
 // =========================
 app.use("/api/upload", uploadRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/documents", documentRoutes);
 
 // =========================
 // Home Route
@@ -58,11 +60,14 @@ app.get("/api/files", async (req, res) => {
             success: true,
             files: data,
         });
+
     } catch (err) {
+
         res.status(500).json({
             success: false,
             error: err.message,
         });
+
     }
 });
 

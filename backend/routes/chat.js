@@ -1,141 +1,134 @@
 const express = require("express");
-const Groq = require("groq-sdk");
+const litellm = require("../config/litellm");
+const supabase = require("../config/supabase");
+const chooseModel = require("../services/modelRouter");
 
 const router = express.Router();
 
-const groq = new Groq({
-    apiKey: process.env.GROQ_API_KEY,
-});
-
-// ===========================
-// AI Chat Route
-// ===========================
+// AI Chat
 router.post("/", async (req, res) => {
-
-    console.log("🔥 AI Chat API Called");
-
     try {
+        const { documentId, message } = req.body;
+        if (!documentId) return res.status(400).json({ success: false, error: "Document ID is required." });
+        if (!message) return res.status(400).json({ success: false, error: "Question is required." });
 
-        const { message } = req.body;
+        const { data: document, error } = await supabase.from("documents")
+            .select("user_id,file_name,document_text")
+            .eq("id", documentId).single();
 
-        if (!global.documentText) {
-            return res.status(400).json({
-                success: false,
-                error: "Please upload a document first.",
-            });
-        }
+        if (error || !document) return res.status(404).json({ success: false, error: "Document not found." });
 
-        const prompt = `
-You are an AI Document Assistant.
+        const model = chooseModel(message, document.document_text);
+
+        const response = await litellm.post("/chat/completions", {
+            model,
+            messages: [{
+                role: "user", content: `You are an AI Document Assistant.
 
 Document Name:
-${global.documentName}
+${document.file_name}
 
 Document Content:
-${global.documentText}
+${document.document_text}
 
 User Question:
 ${message}
 
-Instructions:
-1. Answer ONLY from the uploaded document.
-2. If the answer is not available, reply:
-"I couldn't find that information in the uploaded document."
-`;
-
-        const completion = await groq.chat.completions.create({
-            model: "llama-3.3-70b-versatile",
-            messages: [
-                {
-                    role: "user",
-                    content: prompt,
-                },
-            ],
-            temperature: 0.3,
+Answer ONLY using the uploaded document.`}],
+            temperature: 0.3
         });
 
-        console.log("✅ AI Response Generated");
+        const answer = response.data.choices[0].message.content;
 
-        res.json({
-            success: true,
-            answer: completion.choices[0].message.content,
+        await supabase.from("chat_history").insert({
+            user_id: document.user_id,
+            document_id: documentId,
+            question: message,
+            answer,
+            model_used: model
         });
 
-    } catch (error) {
-
-        console.error("❌ AI Chat Error");
-        console.error(error);
-
-        res.status(500).json({
-            success: false,
-            error: error.message,
-        });
-
+        return res.json({ success: true, model, answer });
+    } catch (err) {
+        return res.status(500).json({ success: false, error: err.response?.data || err.message });
     }
-
 });
 
-// ===========================
-// Document Summary Route
-// ===========================
+// Summary
 router.post("/summary", async (req, res) => {
-
-    console.log("📄 Summary API Called");
-
     try {
+        const { documentId } = req.body;
+        if (!documentId) return res.status(400).json({ success: false, error: "Document ID is required." });
 
-        if (!global.documentText) {
-            return res.status(400).json({
-                success: false,
-                error: "Please upload a document first.",
-            });
+        const { data: document, error } = await supabase.from("documents")
+            .select("file_name,document_text")
+            .eq("id", documentId).single();
+
+        if (error || !document) return res.status(404).json({ success: false, error: "Document not found." });
+
+        const model = chooseModel("summarize", document.document_text);
+
+        const response = await litellm.post("/chat/completions", {
+            model,
+            messages: [{ role: "user", content: `Summarize this document:\n${document.document_text}` }],
+            temperature: 0.3
+        });
+
+        return res.json({
+            success: true,
+            model,
+            summary: response.data.choices[0].message.content
+        });
+    } catch (err) {
+        return res.status(500).json({ success: false, error: err.response?.data || err.message });
+    }
+});
+
+// Diagram
+router.post("/diagram", async (req, res) => {
+    try {
+        const { documentId } = req.body;
+        if (!documentId) return res.status(400).json({ success: false, error: "Document ID is required." });
+
+        const { data: document, error } = await supabase.from("documents")
+            .select("file_name,document_text")
+            .eq("id", documentId).single();
+
+        if (error || !document) return res.status(404).json({ success: false, error: "Document not found." });
+
+        const response = await litellm.post("/chat/completions", {
+            model: "gemini-flash",
+            messages: [{
+                role: "user", content: `Generate ONLY a Mermaid flowchart from this document.
+Return only Mermaid syntax.
+Start with graph TD.
+
+${document.document_text}`
+            }],
+            temperature: 0.2
+        });
+
+        let diagram = response.data.choices[0].message.content.trim();
+        diagram = diagram.replace(/^```mermaid\s*/i, "").replace(/^```\s*/i, "").replace(/```$/i, "").trim();
+        if (!diagram.startsWith("graph")) {
+            diagram = "graph TD\nA[Diagram Generation Failed]";
         }
 
-        const prompt = `
-Summarize the following document.
-
-Document Name:
-${global.documentName}
-
-Document Content:
-${global.documentText}
-
-Instructions:
-1. Give a concise summary.
-2. Highlight important points.
-3. Keep it between 100 and 200 words.
-`;
-
-        const completion = await groq.chat.completions.create({
-            model: "llama-3.3-70b-versatile",
-            messages: [
-                {
-                    role: "user",
-                    content: prompt,
-                },
-            ],
-            temperature: 0.3,
-        });
-
-        console.log("✅ Summary Generated");
-
-        res.json({
-            success: true,
-            summary: completion.choices[0].message.content,
-        });
-
-    } catch (error) {
-
-        console.error("❌ Summary Error");
-        console.error(error);
-
-        res.status(500).json({
-            success: false,
-            error: error.message,
-        });
-
+        return res.json({ success: true, diagram });
+    } catch (err) {
+        return res.status(500).json({ success: false, error: err.response?.data || err.message });
     }
+});
 
+// History
+router.get("/history", async (req, res) => {
+    try {
+        const { data, error } = await supabase.from("chat_history").select("*").order("created_at", { ascending: false });
+        if (error) return res.status(400).json({ success: false, error: error.message });
+        return res.json({ success: true, history: data });
+    } catch (err) {
+        return res.status(500).json({ success: false, error: err.message });
+    }
 });
 
 module.exports = router;

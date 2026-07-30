@@ -1,154 +1,209 @@
 import { ReactNode } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+
 import {
   AppBar,
-  Toolbar,
-  Typography,
+  Avatar,
+  Badge,
   Box,
+  Divider,
   Drawer,
+  IconButton,
   List,
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Avatar,
-  Divider,
+  Toolbar,
+  Typography,
 } from "@mui/material";
 
-import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
-import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
-import ChatOutlinedIcon from "@mui/icons-material/ChatOutlined";
-import HistoryOutlinedIcon from "@mui/icons-material/HistoryOutlined";
-import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
+import DashboardRoundedIcon from "@mui/icons-material/DashboardRounded";
+import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
+import ChatRoundedIcon from "@mui/icons-material/ChatRounded";
+import AutoAwesomeRoundedIcon from "@mui/icons-material/AutoAwesomeRounded";
+import HistoryRoundedIcon from "@mui/icons-material/HistoryRounded";
+import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
+import NotificationsNoneRoundedIcon from "@mui/icons-material/NotificationsNoneRounded";
 
-const drawerWidth = 240;
-
-const menuItems = [
-  {
-    label: "Dashboard",
-    icon: <DashboardOutlinedIcon />,
-  },
-  {
-    label: "Documents",
-    icon: <DescriptionOutlinedIcon />,
-  },
-  {
-    label: "AI Chat",
-    icon: <ChatOutlinedIcon />,
-  },
-  {
-    label: "History",
-    icon: <HistoryOutlinedIcon />,
-  },
-  {
-    label: "Settings",
-    icon: <SettingsOutlinedIcon />,
-  },
-];
+const drawerWidth = 270;
 
 interface LayoutProps {
   children: ReactNode;
 }
 
+const menuItems = [
+  {
+    label: "Dashboard",
+    icon: <DashboardRoundedIcon />,
+    path: "/dashboard",
+  },
+  {
+    label: "Documents",
+    icon: <DescriptionRoundedIcon />,
+    path: "/upload",
+  },
+  {
+    label: "AI Chat",
+    icon: <ChatRoundedIcon />,
+    path: "/chat",
+  },
+  {
+    label: "Generation",
+    icon: <AutoAwesomeRoundedIcon />,
+    path: "/generation",
+  },
+  {
+    label: "History",
+    icon: <HistoryRoundedIcon />,
+    path: "/history",
+  },
+  {
+    label: "Settings",
+    icon: <SettingsRoundedIcon />,
+    path: "/settings",
+  },
+];
+
 export default function Layout({ children }: LayoutProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "#f5f7fb" }}>
-      {/* Sidebar */}
+    <Box sx={{ display: "flex", bgcolor: "#f4f7fc", minHeight: "100vh" }}>
+
       <Drawer
         variant="permanent"
         sx={{
           width: drawerWidth,
-          flexShrink: 0,
           "& .MuiDrawer-paper": {
             width: drawerWidth,
-            boxSizing: "border-box",
-            background: "#ffffff",
-            borderRight: "1px solid #e5e7eb",
+            border: 0,
+            bgcolor: "#0f172a",
+            color: "#fff",
+            p: 2,
           },
         }}
       >
-        <Toolbar>
-          <Typography
-            variant="h6"
-            sx={{
-              fontWeight: "bold",
-              color: "#1976d2",
-            }}
-          >
-            AI Document
-          </Typography>
-        </Toolbar>
 
-        <Divider />
+        <Typography
+          variant="h5"
+          fontWeight="bold"
+          sx={{ mb: 0.5 }}
+        >
+          AI Docs
+        </Typography>
 
-        <List sx={{ mt: 1 }}>
+        <Typography
+          variant="body2"
+          sx={{ color: "#94a3b8", mb: 4 }}
+        >
+          Enterprise Assistant
+        </Typography>
+
+        <List>
+
           {menuItems.map((item) => (
+
             <ListItemButton
               key={item.label}
+              selected={location.pathname === item.path}
+              onClick={() => navigate(item.path)}
               sx={{
-                mx: 1,
+                borderRadius: 3,
                 mb: 1,
-                borderRadius: 2,
+
+                bgcolor:
+                  location.pathname === item.path
+                    ? "#2563eb"
+                    : "transparent",
+
+                "&:hover": {
+                  bgcolor: "#1e40af",
+                },
               }}
             >
-              <ListItemIcon>{item.icon}</ListItemIcon>
 
-              <ListItemText
-                primary={
-                  <Typography
-                    sx={{
-                      fontSize: 15,
-                      fontWeight: 600,
-                    }}
-                  >
-                    {item.label}
-                  </Typography>
-                }
-              />
+              <ListItemIcon
+                sx={{
+                  color: "#fff",
+                  minWidth: 40,
+                }}
+              >
+                {item.icon}
+              </ListItemIcon>
+
+              <ListItemText primary={item.label} />
+
             </ListItemButton>
+
           ))}
+
         </List>
+
+        <Box flexGrow={1} />
+
+        <Divider sx={{ bgcolor: "#334155", my: 2 }} />
+
+        <Typography variant="body2">
+          Storage
+        </Typography>
+
+        <Typography color="#94a3b8">
+          1.3 GB / 5 GB
+        </Typography>
+
       </Drawer>
 
-      {/* Right Side */}
       <Box sx={{ flexGrow: 1 }}>
+
         <AppBar
-          position="static"
+          position="sticky"
           elevation={0}
           sx={{
-            bgcolor: "#ffffff",
-            color: "#000",
-            borderBottom: "1px solid #e5e7eb",
+            bgcolor: "#fff",
+            color: "#111",
+            borderBottom: "1px solid #eee",
           }}
         >
-          <Toolbar sx={{ justifyContent: "space-between" }}>
-            <Box>
-              <Typography variant="h5" sx={{ fontWeight: "bold" }}>
-                AI Document Assistant
-              </Typography>
+          <Toolbar>
 
-              <Typography variant="body2" color="text.secondary">
-                Upload • Search • Summarize • Chat
-              </Typography>
-            </Box>
+            <Typography
+              variant="h6"
+              fontWeight="bold"
+              sx={{ flexGrow: 1 }}
+            >
+              AI Document Assistant
+            </Typography>
+
+            <IconButton>
+
+              <Badge
+                badgeContent={2}
+                color="error"
+              >
+                <NotificationsNoneRoundedIcon />
+              </Badge>
+
+            </IconButton>
 
             <Avatar
               sx={{
-                bgcolor: "#1976d2",
+                ml: 2,
+                bgcolor: "#2563eb",
               }}
             >
               H
             </Avatar>
+
           </Toolbar>
         </AppBar>
 
-        {/* Main Content */}
-        <Box
-          sx={{
-            p: 3,
-          }}
-        >
+        <Box p={4}>
           {children}
         </Box>
+
       </Box>
+
     </Box>
   );
 }
