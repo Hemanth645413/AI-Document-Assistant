@@ -1,13 +1,21 @@
 model_list:
-  - model_name: groq-llama
-    litellm_params:
-      model: groq/llama-3.3-70b-versatile
-      api_key: os.environ/GROQ_API_KEY
-
   - model_name: gemini-flash
     litellm_params:
-      model: gemini/gemini-flash-latest
+      model: gemini/gemini-3.5-flash-lite
       api_key: os.environ/GEMINI_API_KEY
+
+  - model_name: groq-llama
+    litellm_params:
+      model: groq/openai/gpt-oss-20b
+      api_key: os.environ/GROQ_API_KEY
+
+  - model_name: huggingface
+    litellm_params:
+      model: huggingface/meta-llama/Llama-3.1-8B-Instruct
+      api_key: os.environ/HUGGINGFACE_API_KEY
 
 litellm_settings:
   set_verbose: true
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
