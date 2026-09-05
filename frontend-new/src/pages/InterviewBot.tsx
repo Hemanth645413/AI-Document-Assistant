@@ -892,7 +892,8 @@ const InterviewBot = () => {
 
 function getFallbackQuestion(
     type: string,
-    difficulty: string,
+    _difficulty: string,
+
     number: number
 ): string {
     const questions: Record<string, string[]> = {
