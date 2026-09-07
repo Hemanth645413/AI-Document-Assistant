@@ -1,3 +1,4 @@
+
 function chooseModel(
     selectedModel,
     task = "",
@@ -47,12 +48,6 @@ function chooseModel(
         // DeepSeek
         // -------------------------------
 
-        // DeepSeek is NOT currently
-        // configured in LiteLLM.
-        //
-        // Therefore don't return
-        // "deepseek" because that model
-        // does not currently exist.
         case "deepseek":
             return "groq-llama";
 
@@ -64,10 +59,7 @@ function chooseModel(
     // AUTOMATIC TASK ROUTING
     // =====================================
 
-    // -------------------------------
     // Summary
-    // -------------------------------
-
     if (
         action.includes("summary") ||
         action.includes("summarize")
@@ -75,10 +67,7 @@ function chooseModel(
         return "gemini-flash";
     }
 
-    // -------------------------------
     // Diagram
-    // -------------------------------
-
     if (
         action.includes("diagram") ||
         action.includes("flowchart") ||
@@ -87,10 +76,7 @@ function chooseModel(
         return "gemini-flash";
     }
 
-    // -------------------------------
     // Translation
-    // -------------------------------
-
     if (
         action.includes("translate") ||
         action.includes("translation")
@@ -98,10 +84,7 @@ function chooseModel(
         return "gemini-flash";
     }
 
-    // -------------------------------
     // Image
-    // -------------------------------
-
     if (
         action.includes("image") ||
         action.includes("image generation")
@@ -109,20 +92,14 @@ function chooseModel(
         return "gemini-flash";
     }
 
-    // -------------------------------
     // Interview
-    // -------------------------------
-
     if (
         action.includes("interview")
     ) {
         return "groq-llama";
     }
 
-    // -------------------------------
     // Video
-    // -------------------------------
-
     if (
         action.includes("video")
     ) {

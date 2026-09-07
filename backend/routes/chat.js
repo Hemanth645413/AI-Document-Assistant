@@ -110,17 +110,17 @@ router.post("/", async (req, res) => {
         // =====================================
         // Select Model
         // =====================================
-
         const selectedModel =
-            chooseModel({
-                model,
-                question: userMessage,
-            });
+            chooseModel(
+                model
+            );
 
         console.log(
             "🤖 Selected model:",
             selectedModel
         );
+
+
 
         // =====================================
         // RAG Context
@@ -332,10 +332,12 @@ router.post("/summary", async (req, res) => {
         // Select Summary Model
         // =====================================
 
+
         const selectedModel =
-            chooseModel({
-                task: "summary",
-            });
+            chooseModel(
+                "",
+                "summary"
+            );
 
         console.log(
             "🤖 Summary model:",
@@ -438,11 +440,12 @@ router.post("/translate", async (req, res) => {
         // =====================================
         // Select Translation Model
         // =====================================
-
         const selectedModel =
-            chooseModel({
-                task: "translation",
-            });
+            chooseModel(
+                "",
+                "translation"
+            );
+
 
         console.log(
             "🤖 Translation model:",
@@ -577,9 +580,12 @@ router.post(
                 questionNumber || 1;
 
             const selectedModel =
-                chooseModel({
-                    task: "interview",
-                });
+                chooseModel(
+                    "",
+                    "interview"
+                );
+
+
 
             const question =
                 await callLiteLLM(
@@ -666,9 +672,11 @@ router.post(
             }
 
             const selectedModel =
-                chooseModel({
-                    task: "interview",
-                });
+
+                chooseModel(
+                    "",
+                    "interview"
+                );
 
             const evaluation =
                 await callLiteLLM(
@@ -749,7 +757,85 @@ ${answer}
         }
     }
 );
+// =====================================
+// DIAGRAM API
+// =====================================
 
+router.post("/diagram", async (req, res) => {
+    try {
+        const { text } = req.body;
+
+        if (!text) {
+            return res.status(400).json({
+                success: false,
+                error: "Text is required.",
+            });
+        }
+
+        console.log("📊 Diagram request");
+
+        const selectedModel = chooseModel(
+            "",
+            "diagram"
+        );
+
+        console.log(
+            "🤖 Diagram model:",
+            selectedModel
+        );
+
+        const diagram = await callLiteLLM(
+            selectedModel,
+            [
+                {
+                    role: "system",
+                    content:
+                        "You are an expert at creating Mermaid diagrams. Return ONLY valid Mermaid syntax. Do not use markdown code fences.",
+                },
+                {
+                    role: "user",
+                    content: `
+Create a clear Mermaid flowchart for the following process:
+
+${text}
+
+Use:
+flowchart TD
+
+Return only the Mermaid code.
+                    `,
+                },
+            ],
+            {
+                temperature: 0.2,
+                max_tokens: 2000,
+            }
+        );
+
+        console.log("✅ Diagram generated");
+
+        return res.json({
+            success: true,
+            model: selectedModel,
+            diagram: diagram.trim(),
+        });
+
+    } catch (error) {
+        console.error(
+            "❌ Diagram API Error:",
+            error.response?.data ||
+            error.message
+        );
+
+        return res.status(500).json({
+            success: false,
+            error:
+                error.response?.data ||
+                error.message ||
+                "Diagram generation failed.",
+        });
+    }
+});
 // =====================================
 // MODULE EXPORT
 // =====================================
